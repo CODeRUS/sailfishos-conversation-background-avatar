@@ -1,80 +1,42 @@
-commit b047726933c0d0660f0d537621acc6ff43e8b4c4
+commit 5ee14a4d543be4f502301cac136834475adc1899
 Author: CODeRUS <coderusinbox@gmail.com>
-Date:   Wed Feb 18 16:50:52 2015 +0500
+Date:   Wed Feb 18 18:30:06 2015 +0500
 
-    [v0.0.1] Added contact avatar to conversation
+    [v0.0.2] Added background with multiple recepient support
 
 diff --git a/usr/share/jolla-messages/pages/ConversationPage.qml b/usr/share/jolla-messages/pages/ConversationPage.qml
-index a2d4463..539a7f1 100644
+index a2d4463..13a73ff 100644
 --- a/usr/share/jolla-messages/pages/ConversationPage.qml
 +++ b/usr/share/jolla-messages/pages/ConversationPage.qml
-@@ -38,6 +38,71 @@ Page {
+@@ -38,6 +38,33 @@ Page {
          onTargetChanged: textInput.reset()
      }
  
-+    property url contactAvatar: conversation.people[0].avatarPath
-+    
-+    onContactAvatarChanged: avatarUpdateTimer.restart()
++    Row {
++    	z: -1
++        height: parent.height
++        spacing: 0
 +
-+    Timer {
-+        id: avatarUpdateTimer
-+        interval: 1
-+        onTriggered: {
-+            var newAvatar = "image://glass/" + contactAvatar
-+            if (glassAvatar.source != newAvatar) {
-+                avatarChangeAnimation.start()
-+            } else if (contactAvatar != "") {
-+                avatarFadeInAnimation.start()
-+            }
++        Repeater {
++        	model: conversation.people.length
++        	delegate: multipleAvatar
 +        }
 +    }
 +
-+    SequentialAnimation {
-+        id: avatarChangeAnimation
-+        FadeAnimation {
-+            target: glassAvatar
-+            to: 0.0
-+            duration: glassAvatar.status == Image.Ready ? 200 : 0
-+        }
-+        ScriptAction {
-+            script: {
-+                var newAvatar = "image://glass/" + contactAvatar
-+                if (glassAvatar.visible) {
-+                    if (contactAvatar != "") {
-+                        // avatar will be faded in once the status == Image.Ready
-+                        glassAvatar.source = newAvatar
-+                    } else {
-+                        glassAvatar.source = ""
-+                    }
-+                }
-+            }
-+        }
-+    }
-+
-+    Image {
-+        id: glassAvatar
-+
-+        z: -1
-+        asynchronous: true
-+        opacity: 0.0
-+        sourceSize { width: parent.width; height: parent.height }
-+        onVisibleChanged: {
-+            var newAvatar = "image://glass/" + callerAvatar
-+            if (visible && newAvatar != source) {
-+                opacity = 0.0
-+                avatarUpdateTimer.restart()
-+            }
-+        }
-+        onStatusChanged: {
-+            if (status == Image.Ready) {
-+                avatarFadeInAnimation.start()
-+            }
-+        }
-+        FadeAnimation {
-+            id: avatarFadeInAnimation
-+            target: glassAvatar
-+            to: 1.0
-+        }
++    Component {
++    	id: multipleAvatar
++    	Item {
++    		width: conversationPage.width / conversation.people.length
++    		height: conversationPage.height
++    		clip: true
++		    Image {
++		        id: glassAvatar
++		        anchors.horizontalCenter: parent.horizontalCenter
++		        asynchronous: false
++		        sourceSize { width: conversationPage.width; height: conversationPage.isPortrait ? Screen.height : Screen.width }
++		        source: "image://glass/" + conversation.people[index].avatarPath
++		    }
++    	}
 +    }
 +
      MessagesView {
