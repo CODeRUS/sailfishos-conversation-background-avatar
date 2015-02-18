@@ -1,0 +1,82 @@
+commit b047726933c0d0660f0d537621acc6ff43e8b4c4
+Author: CODeRUS <coderusinbox@gmail.com>
+Date:   Wed Feb 18 16:50:52 2015 +0500
+
+    [v0.0.1] Added contact avatar to conversation
+
+diff --git a/usr/share/jolla-messages/pages/ConversationPage.qml b/usr/share/jolla-messages/pages/ConversationPage.qml
+index a2d4463..539a7f1 100644
+--- a/usr/share/jolla-messages/pages/ConversationPage.qml
++++ b/usr/share/jolla-messages/pages/ConversationPage.qml
+@@ -38,6 +38,71 @@ Page {
+         onTargetChanged: textInput.reset()
+     }
+ 
++    property url contactAvatar: conversation.people[0].avatarPath
++    
++    onContactAvatarChanged: avatarUpdateTimer.restart()
++
++    Timer {
++        id: avatarUpdateTimer
++        interval: 1
++        onTriggered: {
++            var newAvatar = "image://glass/" + contactAvatar
++            if (glassAvatar.source != newAvatar) {
++                avatarChangeAnimation.start()
++            } else if (contactAvatar != "") {
++                avatarFadeInAnimation.start()
++            }
++        }
++    }
++
++    SequentialAnimation {
++        id: avatarChangeAnimation
++        FadeAnimation {
++            target: glassAvatar
++            to: 0.0
++            duration: glassAvatar.status == Image.Ready ? 200 : 0
++        }
++        ScriptAction {
++            script: {
++                var newAvatar = "image://glass/" + contactAvatar
++                if (glassAvatar.visible) {
++                    if (contactAvatar != "") {
++                        // avatar will be faded in once the status == Image.Ready
++                        glassAvatar.source = newAvatar
++                    } else {
++                        glassAvatar.source = ""
++                    }
++                }
++            }
++        }
++    }
++
++    Image {
++        id: glassAvatar
++
++        z: -1
++        asynchronous: true
++        opacity: 0.0
++        sourceSize { width: parent.width; height: parent.height }
++        onVisibleChanged: {
++            var newAvatar = "image://glass/" + callerAvatar
++            if (visible && newAvatar != source) {
++                opacity = 0.0
++                avatarUpdateTimer.restart()
++            }
++        }
++        onStatusChanged: {
++            if (status == Image.Ready) {
++                avatarFadeInAnimation.start()
++            }
++        }
++        FadeAnimation {
++            id: avatarFadeInAnimation
++            target: glassAvatar
++            to: 1.0
++        }
++    }
++
+     MessagesView {
+         id: messages
+         focus: true

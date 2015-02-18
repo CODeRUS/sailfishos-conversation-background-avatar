@@ -1,0 +1,8 @@
+{
+    "name": "Conversation background avatar",
+    "description": "Patch for showing contact avatar in conversation background",
+    "category": "messages",
+    "infos": {
+        "maintainer": "coderus"
+    }
+}
